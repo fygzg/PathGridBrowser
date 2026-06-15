@@ -13,6 +13,7 @@ namespace DirectoryGridBrowser
         private GridResizeHost gridHost;
         private Button btnAddGrid;
         private Button btnRemoveGrid;
+        private Bitmap? _iconBitmap;
         private TableLayoutPanel tableLayout => gridHost.TableLayout;
 
         public MainForm()
@@ -27,6 +28,7 @@ namespace DirectoryGridBrowser
             this.Text = "多格目录浏览器 - 每个格子独立浏览目录";
             this.Size = new Size(1200, 800);
             this.StartPosition = FormStartPosition.CenterScreen;
+            SetApplicationIcon();
 
             gridHost = new GridResizeHost
             {
@@ -69,6 +71,16 @@ namespace DirectoryGridBrowser
 
             this.Controls.Add(gridHost);
             this.Controls.Add(bottomPanel);
+        }
+
+        private void SetApplicationIcon()
+        {
+            using var stream = typeof(MainForm).Assembly.GetManifestResourceStream("DirectoryGridBrowser.icon.png");
+            if (stream == null)
+                return;
+
+            _iconBitmap = new Bitmap(stream);
+            Icon = Icon.FromHandle(_iconBitmap.GetHicon());
         }
 
         private void MainForm_FormClosing(object? sender, FormClosingEventArgs e)

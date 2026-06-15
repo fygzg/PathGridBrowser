@@ -4,7 +4,7 @@
     <TargetFramework>net6.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
-    <ApplicationIcon />
+    <ApplicationIcon>icon.ico</ApplicationIcon>
     <StartupObject>DirectoryGridBrowser.Program</StartupObject>
     <!-- 支持发布的 Windows 平台 -->
     <RuntimeIdentifiers>win-x64;win-x86;win-arm64</RuntimeIdentifiers>
@@ -18,4 +18,12 @@
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <PublishReadyToRun>true</PublishReadyToRun>
   </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="icon.png" />
+  </ItemGroup>
+
+  <Target Name="GenerateAppIcon" BeforeTargets="PrepareForBuild" Inputs="icon.png" Outputs="icon.ico">
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;Add-Type -AssemblyName System.Drawing; $b=[System.Drawing.Bitmap]::FromFile('$(ProjectDir)icon.png'); $i=[System.Drawing.Icon]::FromHandle($b.GetHicon()); $f=[System.IO.File]::Create('$(ProjectDir)icon.ico'); $i.Save($f); $f.Close(); $b.Dispose()&quot;" />
+  </Target>
 </Project>

@@ -342,7 +342,7 @@ namespace DirectoryGridBrowser
             if (!IsCurrentDirectoryValid())
                 return;
 
-            var result = CopyPathsToDirectory(Clipboard.GetFileDropList(), currentDirectory);
+            var result = CopyPathsToDirectory(Clipboard.GetFileDropList(), currentDirectory, promptOnOverwrite: true);
             ShowTransferResult("粘贴", result);
             if (result.SuccessCount > 0)
                 RefreshAllGridsShowingDirectory(currentDirectory);
@@ -508,7 +508,7 @@ namespace DirectoryGridBrowser
             public System.Collections.Generic.List<string> Errors;
         }
 
-        private static TransferResult CopyPathsToDirectory(System.Collections.IEnumerable sourcePaths, string destDir)
+        private static TransferResult CopyPathsToDirectory(System.Collections.IEnumerable sourcePaths, string destDir, bool promptOnOverwrite = false)
         {
             var result = new TransferResult { Errors = new System.Collections.Generic.List<string>() };
 
@@ -529,8 +529,8 @@ namespace DirectoryGridBrowser
                     {
                         if (Directory.Exists(destPath) || File.Exists(destPath))
                         {
-                            result.Errors.Add($"{name}: 目标已存在");
-                            continue;
+                            if (!ResolveExistingDestination(name, destPath, promptOnOverwrite, result.Errors))
+                                continue;
                         }
                         CopyDirectory(srcPath, destPath);
                     }
@@ -538,8 +538,8 @@ namespace DirectoryGridBrowser
                     {
                         if (File.Exists(destPath) || Directory.Exists(destPath))
                         {
-                            result.Errors.Add($"{name}: 目标已存在");
-                            continue;
+                            if (!ResolveExistingDestination(name, destPath, promptOnOverwrite, result.Errors))
+                                continue;
                         }
                         File.Copy(srcPath, destPath);
                     }
@@ -557,6 +557,34 @@ namespace DirectoryGridBrowser
             }
 
             return result;
+        }
+
+        private static bool ResolveExistingDestination(
+            string name,
+            string destPath,
+            bool promptOnOverwrite,
+            System.Collections.Generic.List<string> errors)
+        {
+            if (!promptOnOverwrite)
+            {
+                errors.Add($"{name}: 目标已存在");
+                return false;
+            }
+
+            string itemType = Directory.Exists(destPath) ? "文件夹" : "文件";
+            var answer = MessageBox.Show(
+                $"目标位置已存在{itemType} \"{name}\"，是否覆盖？",
+                "粘贴",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+            if (answer != DialogResult.Yes)
+                return false;
+
+            if (Directory.Exists(destPath))
+                Directory.Delete(destPath, true);
+            else if (File.Exists(destPath))
+                File.Delete(destPath);
+            return true;
         }
 
         private static TransferResult MovePathsToDirectory(System.Collections.IEnumerable sourcePaths, string destDir)
