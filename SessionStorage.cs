@@ -19,8 +19,7 @@ namespace DirectoryGridBrowser
     internal static class SessionStorage
     {
         private static readonly string SessionFilePath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "DirectoryGridBrowser",
+            AppContext.BaseDirectory,
             "session.json");
 
         public static AppSession? Load()
@@ -43,10 +42,6 @@ namespace DirectoryGridBrowser
         {
             try
             {
-                string? dir = Path.GetDirectoryName(SessionFilePath);
-                if (!string.IsNullOrEmpty(dir))
-                    Directory.CreateDirectory(dir);
-
                 string json = JsonSerializer.Serialize(session, new JsonSerializerOptions { WriteIndented = true });
                 File.WriteAllText(SessionFilePath, json);
             }
