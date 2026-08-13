@@ -23,6 +23,21 @@
     <EmbeddedResource Include="icon.png" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
   <Target Name="GenerateAppIcon" BeforeTargets="PrepareForBuild" Inputs="icon.png" Outputs="icon.ico">
     <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;Add-Type -AssemblyName System.Drawing; $b=[System.Drawing.Bitmap]::FromFile('$(ProjectDir)icon.png'); $i=[System.Drawing.Icon]::FromHandle($b.GetHicon()); $f=[System.IO.File]::Create('$(ProjectDir)icon.ico'); $i.Save($f); $f.Close(); $b.Dispose()&quot;" />
   </Target>

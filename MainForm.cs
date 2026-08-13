@@ -10,9 +10,12 @@ namespace DirectoryGridBrowser
 {
     public class MainForm : Form
     {
+        private const string DefaultWindowTitle = "多格目录浏览器 - 每个格子独立浏览目录";
+
         private GridResizeHost gridHost;
         private Button btnAddGrid;
         private Button btnRemoveGrid;
+        private Button btnEditTitle;
         private Bitmap? _iconBitmap;
         private TableLayoutPanel tableLayout => gridHost.TableLayout;
 
@@ -25,7 +28,7 @@ namespace DirectoryGridBrowser
 
         private void InitializeComponent()
         {
-            this.Text = "多格目录浏览器 - 每个格子独立浏览目录";
+            this.Text = DefaultWindowTitle;
             this.Size = new Size(1200, 800);
             this.StartPosition = FormStartPosition.CenterScreen;
             SetApplicationIcon();
@@ -66,6 +69,18 @@ namespace DirectoryGridBrowser
             };
             btnAddGrid.Click += BtnAddGrid_Click;
 
+            btnEditTitle = new Button
+            {
+                Text = "修改标题",
+                Dock = DockStyle.Fill,
+                BackColor = Color.DimGray,
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 10F, FontStyle.Bold)
+            };
+            btnEditTitle.Click += BtnEditTitle_Click;
+
+            bottomPanel.Controls.Add(btnEditTitle);
             bottomPanel.Controls.Add(btnRemoveGrid);
             bottomPanel.Controls.Add(btnAddGrid);
 
@@ -96,7 +111,8 @@ namespace DirectoryGridBrowser
                 GridCount = browsers.Count,
                 Directories = browsers.ConvertAll(b => b.CurrentDirectory),
                 ColumnWidths = gridHost.GetColumnWidths(),
-                RowHeights = gridHost.GetRowHeights()
+                RowHeights = gridHost.GetRowHeights(),
+                WindowTitle = Text
             };
             SessionStorage.Save(session);
         }
@@ -106,6 +122,7 @@ namespace DirectoryGridBrowser
             AppSession? session = SessionStorage.Load();
             if (session != null && session.GridCount > 0)
             {
+                Text = string.IsNullOrWhiteSpace(session.WindowTitle) ? DefaultWindowTitle : session.WindowTitle;
                 CreateGrids(session.GridCount, session.Directories, session.ColumnWidths, session.RowHeights);
                 return;
             }
@@ -216,6 +233,66 @@ namespace DirectoryGridBrowser
             }
             tableLayout.ResumeLayout();
             tableLayout.PerformLayout();
+        }
+
+        private void BtnEditTitle_Click(object? sender, EventArgs e)
+        {
+            string? newTitle = PromptForWindowTitle(Text);
+            if (newTitle == null)
+                return;
+
+            Text = string.IsNullOrWhiteSpace(newTitle) ? DefaultWindowTitle : newTitle.Trim();
+            SaveSession();
+        }
+
+        private string? PromptForWindowTitle(string currentTitle)
+        {
+            using var form = new Form
+            {
+                Text = "修改标题",
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                StartPosition = FormStartPosition.CenterParent,
+                MinimizeBox = false,
+                MaximizeBox = false,
+                ClientSize = new Size(420, 120)
+            };
+
+            var label = new Label
+            {
+                Text = "窗口标题：",
+                Location = new Point(12, 16),
+                AutoSize = true
+            };
+
+            var textBox = new TextBox
+            {
+                Text = currentTitle,
+                Location = new Point(12, 40),
+                Width = 396,
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+            };
+
+            var btnOk = new Button
+            {
+                Text = "确定",
+                DialogResult = DialogResult.OK,
+                Location = new Point(252, 78),
+                Width = 75
+            };
+
+            var btnCancel = new Button
+            {
+                Text = "取消",
+                DialogResult = DialogResult.Cancel,
+                Location = new Point(333, 78),
+                Width = 75
+            };
+
+            form.Controls.AddRange(new Control[] { label, textBox, btnOk, btnCancel });
+            form.AcceptButton = btnOk;
+            form.CancelButton = btnCancel;
+
+            return form.ShowDialog(this) == DialogResult.OK ? textBox.Text : null;
         }
     }
 }

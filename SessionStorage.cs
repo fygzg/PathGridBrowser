@@ -14,6 +14,7 @@ namespace DirectoryGridBrowser
         public List<string> Directories { get; set; } = new();
         public List<float> ColumnWidths { get; set; } = new();
         public List<float> RowHeights { get; set; } = new();
+        public string? WindowTitle { get; set; }
     }
 
     internal static class SessionStorage
